@@ -16,6 +16,9 @@ Unter **Auswertung → Datensicherung** können alle Einkäufe einschließlich d
 
 ## Hinweise
 
+- Gespeicherte Foto- und PDF-Bons können in der Historie wieder geöffnet, heruntergeladen und zusammen mit Händler, Datum, Artikeln, Mengen, Preisen und Kategorien nachträglich bearbeitet werden.
+- Die Auswertung enthält Wochen-, Monats- und Jahreszeiträume, einen Ausgabenverlauf, einen Vergleich zum vorherigen Zeitraum, getrennte Rabatt-/Pfandwerte, Preisentwicklungen und eine Zuordnungshilfe für unbekannte Artikel.
+- Manuell gewählte Kategorien werden auf dem Gerät gespeichert und bei gleich benannten Artikeln künftig automatisch angewendet. Sie sind auch Bestandteil der vollständigen JSON-Sicherung.
 - Die Texterkennung lädt Tesseract.js und für PDF-Dateien PDF.js bei Bedarf aus dem Internet. Manuelle Eingaben und gespeicherte Daten funktionieren auch offline.
 - Über die Schaltfläche mit Mond bzw. Sonne kann zwischen Light Mode und einem neutral schwarzen Dark Mode gewechselt werden.
 - Die App besitzt ein eigenes Wocheneinkauf-Symbol und kann über die dauerhaft sichtbare Schaltfläche **Installieren** zum Startbildschirm hinzugefügt werden.

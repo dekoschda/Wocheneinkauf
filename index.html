@@ -15,6 +15,7 @@
   <link rel="apple-touch-icon" href="./icons/icon-192.png">
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./dark.css">
+  <link rel="stylesheet" href="./enhancements.css">
 </head>
 <body>
   <header class="topbar">
@@ -63,11 +64,15 @@
     </section>
 
     <section id="view-analysis" class="view" aria-labelledby="analysis-title">
-      <div class="view-head"><div><span class="eyebrow">Auswertung</span><h2 id="analysis-title">Dein Einkaufsüberblick</h2></div><select id="periodSelect" aria-label="Auswertungszeitraum"><option value="30">Letzte 30 Tage</option><option value="90">Letzte 90 Tage</option><option value="365">Letztes Jahr</option><option value="all">Gesamter Zeitraum</option></select></div>
+      <div class="view-head"><div><span class="eyebrow">Auswertung</span><h2 id="analysis-title">Dein Einkaufsüberblick</h2></div><select id="periodSelect" aria-label="Auswertungszeitraum"><option value="week">Aktuelle Woche</option><option value="month" selected>Aktueller Monat</option><option value="90">Letzte 90 Tage</option><option value="year">Aktuelles Jahr</option><option value="all">Gesamter Zeitraum</option></select></div>
       <div id="metrics" class="metric-grid"></div>
       <div class="analysis-grid">
-        <article class="panel"><div class="panel-head"><div><span class="eyebrow">Verteilung</span><h3>Ausgaben nach Kategorie</h3></div></div><div id="categoryChart" class="bar-chart"></div><p class="privacy-note"><strong>Sonstiges</strong> enthält Artikel, die anhand ihrer Bezeichnung keiner vorhandenen Kategorie eindeutig zugeordnet werden konnten.</p></article>
+        <article class="panel wide-panel"><div class="panel-head"><div><span class="eyebrow">Entwicklung</span><h3>Ausgabenverlauf</h3></div></div><div id="spendingTrend"></div></article>
+        <article class="panel"><div class="panel-head"><div><span class="eyebrow">Wareneinkäufe</span><h3>Ausgaben nach Kategorie</h3></div></div><div id="categoryChart" class="bar-chart"></div><p class="privacy-note"><strong>Nicht zugeordnet</strong> enthält Artikel, deren Bezeichnung noch keiner Kategorie zugeordnet werden konnte.</p></article>
         <article class="panel"><div class="panel-head"><div><span class="eyebrow">Häufig gekauft</span><h3>Deine Top-Artikel</h3></div></div><div id="topItems" class="top-list"></div></article>
+        <article class="panel wide-panel"><div class="panel-head"><div><span class="eyebrow">Abzüge und Pfand</span><h3>Was den Einkaufswert verändert</h3></div></div><div id="adjustmentSummary" class="adjustment-grid"></div></article>
+        <article class="panel"><div class="panel-head"><div><span class="eyebrow">Preisvergleich</span><h3>Preisentwicklung deiner Artikel</h3></div></div><div id="priceInsights" class="price-list"></div></article>
+        <article class="panel"><div class="panel-head"><div><span class="eyebrow">Datenqualität</span><h3>Nicht zugeordnete Artikel</h3></div></div><div id="unassignedItems" class="unassigned-list"></div><p class="privacy-note">Eine Auswahl wird gespeichert und bei gleich benannten Artikeln künftig automatisch verwendet.</p></article>
       </div>
       <article class="panel data-panel"><div><span class="eyebrow">Vollständige Datensicherung</span><h3>Einkäufe und Bondateien sichern</h3><p>Der Export enthält alle Einkäufe sowie Foto- und PDF-Bons. Für einen Gerätewechsel importierst du diese Datei auf dem neuen Gerät.</p><div id="backupStatus" class="backup-status">Sicherungsstatus wird geprüft …</div><small id="backupInfo"></small></div><div class="button-row"><button id="exportBtn" class="button primary" type="button">Sicherung erstellen</button><button id="importBtn" class="button secondary" type="button">Sicherung einspielen</button><input id="importFile" class="hidden" type="file" accept="application/json,.json"></div></article>
     </section>
@@ -87,6 +92,7 @@
   </nav>
 
   <dialog id="itemDialog"><form method="dialog" id="itemForm"><div class="dialog-head"><h3>Artikel hinzufügen</h3><button id="closeItemDialog" type="button" aria-label="Schließen">×</button></div><label>Bezeichnung<input id="newItemName" required placeholder="z. B. Milch oder Pfandrückgabe"></label><div class="form-grid"><label>Menge<input id="newItemQty" type="number" min="0.01" step="0.01" value="1"></label><label>Preis gesamt<input id="newItemPrice" type="number" step="0.01" placeholder="z. B. 1,29 oder -0,25"></label></div><button id="confirmItemBtn" class="button primary full" value="default" type="submit">Übernehmen</button></form></dialog>
+  <dialog id="receiptDialog" class="receipt-dialog"><div class="receipt-dialog-content"><div class="dialog-head"><div><span class="eyebrow">Gespeicherter Einkauf</span><h3>Bon ansehen und bearbeiten</h3></div><button id="closeReceiptDialog" type="button" aria-label="Schließen">×</button></div><div id="storedReceiptViewer" class="stored-receipt-viewer"></div><button id="downloadReceiptBtn" class="button secondary full hidden" type="button">Originalbon herunterladen</button><div class="form-grid receipt-meta"><label>Händler<input id="editReceiptStore" type="text"></label><label>Einkaufsdatum<input id="editReceiptDate" type="date"></label></div><div class="items-head"><h3>Erkannte Artikel</h3><button id="receiptAddItemBtn" class="text-button" type="button">＋ Artikel</button></div><div id="receiptEditorItems" class="receipt-editor-items"></div><button id="saveReceiptEditsBtn" class="button primary full" type="button">Änderungen speichern</button></div></dialog>
   <dialog id="installDialog"><div class="install-dialog-content"><div class="dialog-head"><div><span class="eyebrow">Als App verwenden</span><h3>Wocheneinkauf installieren</h3></div><button id="closeInstallDialog" type="button" aria-label="Schließen">×</button></div><div class="install-app-mark"><img src="./icons/icon-192.png" alt="Wocheneinkauf App-Symbol"><div><strong>Wocheneinkauf</strong><small>Startet wie eine normale App und funktioniert auch offline.</small></div></div><div class="install-steps"><div><b>Android · Chrome</b><span>Browsermenü ⋮ öffnen und „App installieren“ oder „Zum Startbildschirm hinzufügen“ auswählen.</span></div><div><b>iPhone · Safari</b><span>Teilen-Symbol antippen und „Zum Home-Bildschirm“ auswählen.</span></div></div><button id="closeInstallDialogBottom" class="button primary full" type="button">Verstanden</button></div></dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="./app.js"></script>
