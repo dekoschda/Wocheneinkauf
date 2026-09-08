@@ -211,7 +211,7 @@ function applyTheme(theme) {
   document.documentElement.dataset.theme = selected; localStorage.setItem("wochenkauf-theme", selected);
   $("#themeBtn").textContent = selected === "dark" ? "☀" : "☾";
   $("#themeBtn").title = selected === "dark" ? "Light Mode" : "Dark Mode";
-  document.querySelector('meta[name="theme-color"]').content = selected === "dark" ? "#0b1220" : "#155eef";
+  document.querySelector('meta[name="theme-color"]').content = selected === "dark" ? "#080808" : "#155eef";
 }
 
 function bindEvents() {

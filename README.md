@@ -17,6 +17,6 @@ Unter **Auswertung → Datensicherung** können alle Einkäufe einschließlich d
 ## Hinweise
 
 - Die Texterkennung lädt Tesseract.js und für PDF-Dateien PDF.js bei Bedarf aus dem Internet. Manuelle Eingaben und gespeicherte Daten funktionieren auch offline.
-- Über die Schaltfläche mit Mond bzw. Sonne kann zwischen Light und Dark Mode gewechselt werden.
+- Über die Schaltfläche mit Mond bzw. Sonne kann zwischen Light Mode und einem neutral schwarzen Dark Mode gewechselt werden.
 - Daten werden nicht automatisch zwischen Geräten synchronisiert.
 - Angebotspreise werden nicht erfunden oder zwischengespeichert; die App öffnet aktuelle Suchseiten bei kaufDA und marktguru.
