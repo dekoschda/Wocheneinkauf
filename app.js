@@ -6,14 +6,27 @@ const STORE = "receipts";
 const CATEGORY_WORDS = {
   "Rabatte": ["rabatt","coupon","gutschein","ersparnis","gespart","preisnachlass","aktion"],
   "Pfand & Rückgabe": ["pfand","leergut","flaschenrückgabe","dosenrückgabe"],
-  "Obst & Gemüse": ["apfel","banane","tomate","gurke","salat","kartoffel","zwiebel","paprika","beeren","gemüse","obst","karotte"],
-  "Milchprodukte": ["milch","käse","joghurt","quark","butter","sahne","skyr","mozzarella"],
-  "Brot & Frühstück": ["brot","brötchen","toast","müsli","hafer","marmelade","kaffee","cornflakes"],
-  "Fleisch & Fisch": ["hähnchen","fleisch","hack","wurst","lachs","fisch","schinken","salami"],
-  "Getränke": ["wasser","saft","cola","bier","wein","getränk","limonade"],
-  "Haushalt": ["papier","reiniger","spül","wasch","müllbeutel","seife","tücher"],
-  "Tiefkühl": ["tk ","tiefkühl","pizza","eiscreme"],
-  "Süßes & Snacks": ["schokolade","chips","keks","bonbon","gummi"],
+  "Baby & Kind": ["windel","babynahrung","babybrei","folgemilch","feuchttücher","schnuller","baby"],
+  "Tierbedarf": ["tierfutter","hundefutter","katzenfutter","katzenstreu","leckerlis","vogelstreu","heimtier"],
+  "Körperpflege": ["shampoo","duschgel","zahnpasta","zahnbürste","deo","deodorant","rasierer","creme","lotion","kosmetik","tampon","binde","seife"],
+  "Reinigung & Waschen": ["waschmittel","weichspüler","spülmittel","reiniger","putzmittel","entkalker","geschirrspül","spülmaschinen","fleckenentferner"],
+  "Haushalt & Verbrauchsartikel": ["küchenrolle","küchenpapier","toilettenpapier","taschentücher","backpapier","alufolie","frischhaltefolie","müllbeutel","serviette","schwamm","batterie","kerze"],
+  "Vegetarisch & Vegan": ["tofu","vegan","vegetar","fleischersatz","pflanzendrink","haferdrink","sojadrink","mandeldrink","hafermilch","sojamilch","mandelmilch","seitan","tempeh"],
+  "Obst & Gemüse": ["apfel","äpfel","banane","tomate","gurke","salat","kartoffel","zwiebel","paprika","beeren","gemüse","obst","karotte","möhre","zucchini","brokkoli","blumenkohl","pilz","orange","mandarine","zitrone","traube","birne"],
+  "Milchprodukte & Eier": ["milch","käse","joghurt","quark","butter","sahne","skyr","mozzarella","frischkäse","schmand","kefir","pudding","ei ","eier"],
+  "Brot & Backwaren": ["brot","brötchen","toast","baguette","croissant","brezel","backware","kuchen","torte"],
+  "Frühstück": ["müsli","cornflakes","haferflocken","marmelade","honig","kaffee","espresso","kakao","tee ","schwarztee","grüntee","kräutertee"],
+  "Fleisch & Wurst": ["hähnchen","fleisch","hack","wurst","schinken","salami","schnitzel","steak","bratwurst","pute","rind","schwein","speck"],
+  "Fisch & Meeresfrüchte": ["lachs","fisch","thunfisch","garnelen","hering","makrele","forelle","meeresfrüchte","shrimps"],
+  "Tiefkühlprodukte": ["tk ","tiefkühl","tiefgefroren","eiscreme","speiseeis","fischstäbchen"],
+  "Fertiggerichte": ["fertiggericht","instant","mikrowelle","dosensuppe","tütensuppe","ravioli","lasagne","pizza","flammenkuchen","nudelsalat","kartoffelsalat"],
+  "Nudeln, Reis & Getreide": ["nudel","spaghetti","penne","reis","couscous","bulgur","quinoa","getreide","grieß"],
+  "Saucen & Gewürze": ["ketchup","mayonnaise","senf","sauce","soße","gewürz","salz","pfeffer","kräuter","brühe","dressing","essig"],
+  "Backen & Zutaten": ["mehl","zucker","backpulver","hefe","vanillezucker","speisestärke","kakaopulver","kuvertüre","tortenguss","backmischung"],
+  "Konserven & Vorräte": ["konserve","dose ","dosentomate","bohnen","linsen","kichererbse","mais","öl","olivenöl","sonnenblumenöl","passata","tomatenmark"],
+  "Süßigkeiten & Snacks": ["schokolade","chips","keks","bonbon","gummi","fruchtgummi","nüsse","erdnüsse","cracker","popcorn","riegel"],
+  "Alkoholfreie Getränke": ["alkoholfrei","wasser","saft","cola","limonade","getränk","schorle","energy","eistee","smoothie"],
+  "Alkoholische Getränke": ["bier","wein","sekt","prosecco","spirituose","whisky","whiskey","wodka","vodka","likör","gin","rum"],
 };
 const CATEGORY_NAMES = [...Object.keys(CATEGORY_WORDS), "Nicht zugeordnet"];
 
@@ -25,7 +38,7 @@ const esc = (value) => String(value ?? "").replace(/[&<>'"]/g, (char) => ({ "&":
 const today = () => { const date = new Date(); date.setMinutes(date.getMinutes() - date.getTimezoneOffset()); return date.toISOString().slice(0, 10); };
 const itemKey = (name) => String(name || "").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9äöüß]+/g, " ").trim();
 const getCategoryRules = () => { try { return JSON.parse(localStorage.getItem("wochenkauf-category-rules") || "{}"); } catch { return {}; } };
-const categoryFor = (name) => { const lower = String(name || "").toLowerCase(); const learned = getCategoryRules()[itemKey(name)]; return learned || Object.entries(CATEGORY_WORDS).find(([, words]) => words.some((word) => lower.includes(word)))?.[0] || "Nicht zugeordnet"; };
+const categoryFor = (name) => { const lower = String(name || "").toLowerCase().trim(); const learned = getCategoryRules()[itemKey(name)]; if (CATEGORY_NAMES.includes(learned)) return learned; const matches = Object.entries(CATEGORY_WORDS).flatMap(([category, words]) => words.filter((word) => lower === word.trim() || lower.includes(word)).map((word) => ({ category, length: word.trim().length }))).sort((a, b) => b.length - a.length); return matches[0]?.category || "Nicht zugeordnet"; };
 const categoryOptions = (selected) => CATEGORY_NAMES.map((name) => `<option value="${esc(name)}"${name === selected ? " selected" : ""}>${esc(name)}</option>`).join("");
 function rememberCategory(name, category) { if (!name || !category || category === "Nicht zugeordnet") return; const rules = getCategoryRules(); rules[itemKey(name)] = category; localStorage.setItem("wochenkauf-category-rules", JSON.stringify(rules)); }
 const offerSlug = (value) => value.toLowerCase().replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
@@ -258,7 +271,7 @@ function downloadStoredReceipt() {
 async function loadAll() {
   try {
     state.receipts = await dbGetAll(); const changed = [];
-    state.receipts.forEach((row) => { let rowChanged = false; row.items = Array.isArray(row.items) ? row.items : []; row.items.forEach((item) => { if (!item.category || item.category === "Sonstiges") { item.category = categoryFor(item.name); rowChanged = true; } }); if (rowChanged) { row.totalCents = row.items.reduce((sum, item) => sum + item.totalPriceCents, 0); changed.push(dbPut(row)); } });
+    state.receipts.forEach((row) => { let rowChanged = false; row.items = Array.isArray(row.items) ? row.items : []; row.items.forEach((item) => { if (!item.category || !CATEGORY_NAMES.includes(item.category)) { item.category = categoryFor(item.name); rowChanged = true; } }); if (rowChanged) { row.totalCents = row.items.reduce((sum, item) => sum + item.totalPriceCents, 0); changed.push(dbPut(row)); } });
     if (changed.length) await Promise.all(changed); renderHistory();
   } catch { showToast("Die gespeicherten Einkäufe konnten nicht geladen werden."); }
 }
@@ -328,7 +341,7 @@ async function importBackup(file) {
   try {
     const payload = JSON.parse(await file.text()); if (payload.app !== "Wocheneinkauf" || !Array.isArray(payload.receipts)) throw new Error("invalid");
     if (payload.settings?.categoryRules) localStorage.setItem("wochenkauf-category-rules", JSON.stringify(payload.settings.categoryRules));
-    const rows = payload.receipts.map((row) => ({ ...row, items: (row.items || []).map((item) => ({ ...item, category: !item.category || item.category === "Sonstiges" ? categoryFor(item.name) : item.category })), image: dataUrlToBlob(row.image) }));
+    const rows = payload.receipts.map((row) => ({ ...row, items: (row.items || []).map((item) => ({ ...item, category: !item.category || !CATEGORY_NAMES.includes(item.category) ? categoryFor(item.name) : item.category })), image: dataUrlToBlob(row.image) }));
     rows.forEach((row) => { row.totalCents = row.items.reduce((sum, item) => sum + item.totalPriceCents, 0); }); await dbClearAndImport(rows); state.receipts = await dbGetAll();
     if (payload.settings?.location) { $("#locationInput").value = payload.settings.location; localStorage.setItem("wochenkauf-location", payload.settings.location); } if (payload.settings?.theme) applyTheme(payload.settings.theme); localStorage.setItem("wochenkauf-backup-pending", "false"); localStorage.setItem("wochenkauf-last-backup", new Date().toLocaleString("de-DE")); localStorage.setItem("wochenkauf-last-backup-at", new Date().toISOString()); renderAnalysis(); renderHistory(); showToast(`${rows.length} Einkäufe einschließlich Bondateien wiederhergestellt.`);
   } catch { showToast("Die Sicherungsdatei ist ungültig oder beschädigt."); }
