@@ -1,6 +1,6 @@
 # Wocheneinkauf PWA
 
-Installierbare Web-App zum Erfassen und Auswerten von Kassenbons. Foto- und PDF-Bons sowie alle Einkäufe werden ausschließlich im Browser des jeweiligen Geräts gespeichert.
+Installierbare Web-App zum Erfassen und Auswerten von Kassenbons. Bons im PDF-, JPG-, PNG- oder WEBP-Format sowie alle Einkäufe werden ausschließlich im Browser des jeweiligen Geräts gespeichert.
 
 ## Veröffentlichung mit GitHub Pages
 

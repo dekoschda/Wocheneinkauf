@@ -39,10 +39,10 @@
             <div id="pdfPreview" class="pdf-preview hidden"><span>PDF</span><strong id="pdfName"></strong><small id="pdfInfo">Bereit zum Auslesen</small></div>
           </div>
           <input id="receiptFile" class="hidden" type="file" accept="image/*" capture="environment">
-          <input id="pdfFile" class="hidden" type="file" accept="application/pdf,.pdf">
+          <input id="uploadFile" class="hidden" type="file" accept="application/pdf,.pdf,image/jpeg,.jpg,.jpeg,image/png,.png,image/webp,.webp">
           <div class="button-row">
             <button id="chooseFileBtn" class="button secondary grow" type="button">Foto auswählen</button>
-            <button id="choosePdfBtn" class="button secondary grow" type="button">PDF auswählen</button>
+            <button id="chooseUploadBtn" class="button secondary grow" type="button">Datei hochladen</button>
             <button id="ocrBtn" class="button primary grow" type="button" disabled>Bon auslesen</button>
           </div>
           <div id="ocrProgressWrap" class="progress-wrap hidden"><div class="progress-line"><span>Texterkennung</span><strong id="ocrPercent">0 %</strong></div><div class="progress"><i id="ocrProgress"></i></div></div>

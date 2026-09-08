@@ -139,7 +139,7 @@ async function loadAll() {
 }
 
 function resetCapture() {
-  state.draftItems = []; state.draftImage = null; state.draftImageName = ""; state.draftFileType = ""; $("#receiptFile").value = ""; $("#pdfFile").value = ""; $("#receiptPreview").src = ""; $("#receiptPreview").classList.add("hidden"); $("#pdfPreview").classList.add("hidden"); $("#uploadPrompt").classList.remove("hidden"); $("#ocrBtn").disabled = true; $("#storeInput").value = ""; $("#dateInput").value = today(); $("#rawText").value = ""; renderDraftItems();
+  state.draftItems = []; state.draftImage = null; state.draftImageName = ""; state.draftFileType = ""; $("#receiptFile").value = ""; $("#uploadFile").value = ""; $("#receiptPreview").src = ""; $("#receiptPreview").classList.add("hidden"); $("#pdfPreview").classList.add("hidden"); $("#uploadPrompt").classList.remove("hidden"); $("#ocrBtn").disabled = true; $("#storeInput").value = ""; $("#dateInput").value = today(); $("#rawText").value = ""; renderDraftItems();
 }
 
 function selectImage(file) {
@@ -222,7 +222,7 @@ function bindEvents() {
   });
   $("#dropZone").addEventListener("click", () => $("#receiptFile").click()); $("#dropZone").addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") $("#receiptFile").click(); });
   $("#dropZone").addEventListener("dragover", (event) => event.preventDefault()); $("#dropZone").addEventListener("drop", (event) => { event.preventDefault(); selectImage(event.dataTransfer.files[0]); });
-  $("#chooseFileBtn").addEventListener("click", () => $("#receiptFile").click()); $("#receiptFile").addEventListener("change", (event) => selectImage(event.target.files[0])); $("#choosePdfBtn").addEventListener("click", () => $("#pdfFile").click()); $("#pdfFile").addEventListener("change", (event) => selectImage(event.target.files[0])); $("#ocrBtn").addEventListener("click", runOcr);
+  $("#chooseFileBtn").addEventListener("click", () => $("#receiptFile").click()); $("#receiptFile").addEventListener("change", (event) => selectImage(event.target.files[0])); $("#chooseUploadBtn").addEventListener("click", () => $("#uploadFile").click()); $("#uploadFile").addEventListener("change", (event) => selectImage(event.target.files[0])); $("#ocrBtn").addEventListener("click", runOcr);
   $("#parseBtn").addEventListener("click", () => { state.draftItems = parseReceiptText($("#rawText").value); renderDraftItems(); showToast(`${state.draftItems.length} Artikel übernommen.`); });
   $("#itemList").addEventListener("input", (event) => { const row = event.target.closest(".item-row"); if (!row) return; const index = Number(row.dataset.index); if (event.target.classList.contains("draft-name")) { state.draftItems[index].name = event.target.value; state.draftItems[index].category = categoryFor(event.target.value); row.querySelector("small").textContent = state.draftItems[index].category; } if (event.target.classList.contains("price-input")) state.draftItems[index].totalPriceCents = Math.round((Number(event.target.value.replace(",", ".")) || 0) * 100); $("#captureTotal").textContent = money(state.draftItems.reduce((sum, item) => sum + item.totalPriceCents, 0)); });
   $("#itemList").addEventListener("click", (event) => { const button = event.target.closest(".delete-draft"); if (!button) return; const index = Number(button.closest(".item-row").dataset.index); state.draftItems.splice(index, 1); renderDraftItems(); });
