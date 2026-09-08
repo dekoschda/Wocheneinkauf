@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#155eef">
+  <meta name="description" content="Kassenbons erfassen, Einkäufe auswerten und Angebote finden.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Wocheneinkauf">
+  <title>Wocheneinkauf</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon-192.png">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><div class="brand-icon">🛒</div><div><h1>Wocheneinkauf</h1><p>Bon rein. Überblick raus.</p></div></div>
+    <button id="installBtn" class="button secondary hidden" type="button">App installieren</button>
+  </header>
+
+  <main class="app-shell">
+    <section id="view-history" class="view active" aria-labelledby="history-title">
+      <div class="view-head"><div><span class="eyebrow">Ladehistorie</span><h2 id="history-title">Meine Einkäufe</h2></div><button class="button primary compact" data-go="capture" type="button">＋ Bon</button></div>
+      <div id="historySummary" class="summary-strip"></div>
+      <div id="historyList" class="card-list"></div>
+    </section>
+
+    <section id="view-capture" class="view" aria-labelledby="capture-title">
+      <div class="view-head"><div><span class="eyebrow">Neuer Einkauf</span><h2 id="capture-title">Kassenbon erfassen</h2></div></div>
+      <div class="capture-grid">
+        <article class="panel">
+          <div id="dropZone" class="drop-zone" tabindex="0" role="button" aria-label="Kassenbonfoto auswählen">
+            <div id="uploadPrompt"><div class="round-icon">📷</div><strong>Bon fotografieren oder auswählen</strong><span>JPG, PNG oder WEBP · maximal 10 MB</span></div>
+            <img id="receiptPreview" class="receipt-preview hidden" alt="Vorschau des Kassenbons">
+          </div>
+          <input id="receiptFile" class="hidden" type="file" accept="image/*" capture="environment">
+          <div class="button-row">
+            <button id="chooseFileBtn" class="button secondary grow" type="button">Foto auswählen</button>
+            <button id="ocrBtn" class="button primary grow" type="button" disabled>Bon auslesen</button>
+          </div>
+          <div id="ocrProgressWrap" class="progress-wrap hidden"><div class="progress-line"><span>Texterkennung</span><strong id="ocrPercent">0 %</strong></div><div class="progress"><i id="ocrProgress"></i></div></div>
+          <p class="privacy-note">Die Texterkennung läuft in deinem Browser. Das Bonfoto wird nur auf deinem Gerät gespeichert.</p>
+        </article>
+
+        <article class="panel">
+          <div class="form-grid">
+            <label>Händler<input id="storeInput" type="text" placeholder="z. B. REWE" autocomplete="organization"></label>
+            <label>Einkaufsdatum<input id="dateInput" type="date"></label>
+          </div>
+          <details class="raw-box"><summary>Erkannten Bontext prüfen</summary><textarea id="rawText" rows="6" placeholder="Alternativ Zeilen eingeben, z. B. Milch 1,29"></textarea><button id="parseBtn" class="text-button" type="button">Text neu auswerten</button></details>
+          <div class="items-head"><h3>Artikel</h3><button id="addItemBtn" class="text-button" type="button">＋ Artikel</button></div>
+          <div id="itemList" class="item-list"></div>
+          <div class="save-bar"><div><span>Gesamtbetrag</span><strong id="captureTotal">0,00 €</strong></div><button id="saveBtn" class="button primary" type="button">Einkauf speichern</button></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="view-analysis" class="view" aria-labelledby="analysis-title">
+      <div class="view-head"><div><span class="eyebrow">Auswertung</span><h2 id="analysis-title">Dein Einkaufsüberblick</h2></div><select id="periodSelect" aria-label="Auswertungszeitraum"><option value="30">Letzte 30 Tage</option><option value="90">Letzte 90 Tage</option><option value="365">Letztes Jahr</option><option value="all">Gesamter Zeitraum</option></select></div>
+      <div id="metrics" class="metric-grid"></div>
+      <div class="analysis-grid">
+        <article class="panel"><div class="panel-head"><div><span class="eyebrow">Verteilung</span><h3>Ausgaben nach Kategorie</h3></div></div><div id="categoryChart" class="bar-chart"></div></article>
+        <article class="panel"><div class="panel-head"><div><span class="eyebrow">Häufig gekauft</span><h3>Deine Top-Artikel</h3></div></div><div id="topItems" class="top-list"></div></article>
+      </div>
+      <article class="panel data-panel"><div><span class="eyebrow">Datensicherung</span><h3>Daten sichern oder übertragen</h3><p>Für einen Gerätewechsel exportierst du eine JSON-Datei und importierst sie auf dem neuen Gerät.</p></div><div class="button-row"><button id="exportBtn" class="button secondary" type="button">JSON exportieren</button><button id="importBtn" class="button secondary" type="button">JSON importieren</button><input id="importFile" class="hidden" type="file" accept="application/json,.json"></div><small id="backupInfo"></small></article>
+    </section>
+
+    <section id="view-offers" class="view" aria-labelledby="offers-title">
+      <div class="view-head offers-head"><div><span class="eyebrow">Angebotsradar</span><h2 id="offers-title">Angebote für deine Artikel</h2></div><label class="location-field">📍<input id="locationInput" value="67133 Maxdorf" aria-label="Ort für Angebote"></label></div>
+      <div id="offerList" class="offer-grid"></div>
+      <div class="info-box"><strong>So funktioniert es:</strong> Die App erkennt häufig gekaufte Artikel und öffnet dafür aktuelle Treffer bei kaufDA und marktguru. Preise und Gültigkeit werden auf der jeweiligen Angebotsseite bestätigt.</div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav" aria-label="Hauptnavigation">
+    <button class="nav-btn active" data-view="history" type="button"><span>▤</span><small>Historie</small></button>
+    <button class="nav-btn capture-btn" data-view="capture" type="button"><span>＋</span><small>Erfassen</small></button>
+    <button class="nav-btn" data-view="analysis" type="button"><span>▥</span><small>Auswertung</small></button>
+    <button class="nav-btn" data-view="offers" type="button"><span>⌕</span><small>Angebote</small></button>
+  </nav>
+
+  <dialog id="itemDialog"><form method="dialog" id="itemForm"><div class="dialog-head"><h3>Artikel hinzufügen</h3><button id="closeItemDialog" type="button" aria-label="Schließen">×</button></div><label>Bezeichnung<input id="newItemName" required placeholder="z. B. Milch"></label><div class="form-grid"><label>Menge<input id="newItemQty" type="number" min="0.01" step="0.01" value="1"></label><label>Preis gesamt<input id="newItemPrice" type="number" min="0" step="0.01" placeholder="0,00"></label></div><button id="confirmItemBtn" class="button primary full" value="default" type="submit">Übernehmen</button></form></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
