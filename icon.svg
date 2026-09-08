@@ -1,6 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#155eef"/>
-  <path d="M112 138h44l20 176h190l32-126H171" fill="none" stroke="#fff" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="211" cy="371" r="25" fill="#fff"/><circle cx="345" cy="371" r="25" fill="#fff"/>
-  <path d="M229 127v83m-42-42h84" stroke="#8ed3ff" stroke-width="25" stroke-linecap="round"/>
+  <defs><linearGradient id="g" x1="70" y1="48" x2="445" y2="464" gradientUnits="userSpaceOnUse"><stop stop-color="#202020"/><stop offset="1" stop-color="#050505"/></linearGradient></defs>
+  <rect width="512" height="512" rx="116" fill="url(#g)"/>
+  <rect x="18" y="18" width="476" height="476" rx="101" fill="none" stroke="#3b82f6" stroke-width="13"/>
+  <path d="M103 149h48l24 177h211l34-132H170" fill="none" stroke="#3b82f6" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="216" cy="386" r="25" fill="#f5f5f5"/><circle cx="355" cy="386" r="25" fill="#f5f5f5"/>
+  <path d="M218 102h112v162l-14-10-14 10-14-10-14 10-14-10-14 10-14-10-14 10V102Z" fill="#f5f5f5"/>
+  <path d="M241 139h65M241 169h65M241 199h36" stroke="#171717" stroke-width="13" stroke-linecap="round"/>
+  <circle cx="319" cy="226" r="44" fill="#17a673"/><path d="m297 226 15 15 29-32" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

@@ -232,12 +232,21 @@ function bindEvents() {
   $("#saveBtn").addEventListener("click", saveReceipt); $("#periodSelect").addEventListener("change", renderAnalysis); $("#exportBtn").addEventListener("click", exportBackup); $("#importBtn").addEventListener("click", () => $("#importFile").click()); $("#importFile").addEventListener("change", (event) => event.target.files[0] && importBackup(event.target.files[0]));
   const savedLocation = localStorage.getItem("wochenkauf-location"); if (savedLocation) $("#locationInput").value = savedLocation; $("#locationInput").addEventListener("change", (event) => localStorage.setItem("wochenkauf-location", event.target.value.trim()));
   $("#themeBtn").addEventListener("click", () => applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark"));
-  window.addEventListener("beforeinstallprompt", (event) => { event.preventDefault(); state.installPrompt = event; $("#installBtn").classList.remove("hidden"); });
-  $("#installBtn").addEventListener("click", async () => { if (!state.installPrompt) return; state.installPrompt.prompt(); await state.installPrompt.userChoice; state.installPrompt = null; $("#installBtn").classList.add("hidden"); });
+  window.addEventListener("beforeinstallprompt", (event) => { event.preventDefault(); state.installPrompt = event; });
+  $("#installBtn").addEventListener("click", async () => {
+    const standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    if (standalone) return showToast("Wocheneinkauf ist bereits als App installiert.");
+    if (state.installPrompt) { state.installPrompt.prompt(); const result = await state.installPrompt.userChoice; state.installPrompt = null; if (result.outcome === "accepted") $("#installBtn").classList.add("hidden"); return; }
+    $("#installDialog").showModal();
+  });
+  $("#closeInstallDialog").addEventListener("click", () => $("#installDialog").close());
+  $("#closeInstallDialogBottom").addEventListener("click", () => $("#installDialog").close());
+  window.addEventListener("appinstalled", () => { $("#installBtn").classList.add("hidden"); showToast("Wocheneinkauf wurde installiert."); });
 }
 
 async function init() {
   $("#dateInput").value = today(); bindEvents(); applyTheme(document.documentElement.dataset.theme); renderDraftItems(); await loadAll();
+  if (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true) $("#installBtn").classList.add("hidden");
   if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js").catch(() => {}));
 }
 

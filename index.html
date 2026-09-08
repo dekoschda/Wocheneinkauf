@@ -11,15 +11,15 @@
   <title>Wocheneinkauf</title>
   <script>document.documentElement.dataset.theme=localStorage.getItem("wochenkauf-theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");</script>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="icon" href="./icons/icon-192.png">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./icons/icon-192.png">
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./dark.css">
 </head>
 <body>
   <header class="topbar">
-    <div class="brand"><div class="brand-icon">🛒</div><div><h1>Wocheneinkauf</h1><p>Bon rein. Überblick raus.</p></div></div>
-    <div class="top-actions"><button id="themeBtn" class="theme-toggle" type="button" aria-label="Darstellung wechseln" title="Dark Mode">☾</button><button id="installBtn" class="button secondary hidden" type="button">App installieren</button></div>
+    <div class="brand"><div class="brand-icon"><img src="./icons/icon-192.png" alt=""></div><div><h1>Wocheneinkauf</h1><p>Bon rein. Überblick raus.</p></div></div>
+    <div class="top-actions"><button id="themeBtn" class="theme-toggle" type="button" aria-label="Darstellung wechseln" title="Dark Mode">☾</button><button id="installBtn" class="button secondary install-button" type="button">Installieren</button></div>
   </header>
 
   <main class="app-shell">
@@ -87,6 +87,7 @@
   </nav>
 
   <dialog id="itemDialog"><form method="dialog" id="itemForm"><div class="dialog-head"><h3>Artikel hinzufügen</h3><button id="closeItemDialog" type="button" aria-label="Schließen">×</button></div><label>Bezeichnung<input id="newItemName" required placeholder="z. B. Milch"></label><div class="form-grid"><label>Menge<input id="newItemQty" type="number" min="0.01" step="0.01" value="1"></label><label>Preis gesamt<input id="newItemPrice" type="number" min="0" step="0.01" placeholder="0,00"></label></div><button id="confirmItemBtn" class="button primary full" value="default" type="submit">Übernehmen</button></form></dialog>
+  <dialog id="installDialog"><div class="install-dialog-content"><div class="dialog-head"><div><span class="eyebrow">Als App verwenden</span><h3>Wocheneinkauf installieren</h3></div><button id="closeInstallDialog" type="button" aria-label="Schließen">×</button></div><div class="install-app-mark"><img src="./icons/icon-192.png" alt="Wocheneinkauf App-Symbol"><div><strong>Wocheneinkauf</strong><small>Startet wie eine normale App und funktioniert auch offline.</small></div></div><div class="install-steps"><div><b>Android · Chrome</b><span>Browsermenü ⋮ öffnen und „App installieren“ oder „Zum Startbildschirm hinzufügen“ auswählen.</span></div><div><b>iPhone · Safari</b><span>Teilen-Symbol antippen und „Zum Home-Bildschirm“ auswählen.</span></div></div><button id="closeInstallDialogBottom" class="button primary full" type="button">Verstanden</button></div></dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="./app.js"></script>
 </body>
