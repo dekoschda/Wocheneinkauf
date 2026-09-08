@@ -83,7 +83,8 @@ function parseReceiptText(text) {
     const isDiscount = discountWords.test(name);
     const looksLikeTaxRate = /^(?:[a-z]\s+)?\d{1,2}[,.]\d+\s*%/i.test(name);
     const looksLikeNumericSummary = /^[a-z]?\s*(?:\d+[,.]\d{1,2}\s*){2,}$/i.test(name);
-    if (name.length < 2 || !/[a-zäöüß]/i.test(name) || nonItemWords.test(name) || (isDiscount && !isNegative) || looksLikeTaxRate || looksLikeNumericSummary) continue;
+    const looksLikeCountOnly = /^-?\s*\d+(?:[,.]\d+)?\s*(?:x|×|\*|stk\.?|st[üu]ck|flaschen?|dosen?)\s*$/i.test(name);
+    if (name.length < 2 || !/[a-zäöüß]/i.test(name) || nonItemWords.test(name) || (isDiscount && !isNegative) || looksLikeTaxRate || looksLikeNumericSummary || looksLikeCountOnly) continue;
     items.push({ name, quantity: quantityMatch ? Number(quantityMatch[1].replace(",", ".")) : 1, totalPriceCents: Math.round(amount * 100) * (isNegative ? -1 : 1), category: categoryFor(name) });
   }
 

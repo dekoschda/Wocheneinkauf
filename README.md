@@ -20,5 +20,6 @@ Unter **Auswertung → Datensicherung** können alle Einkäufe einschließlich d
 - Über die Schaltfläche mit Mond bzw. Sonne kann zwischen Light Mode und einem neutral schwarzen Dark Mode gewechselt werden.
 - Die App besitzt ein eigenes Wocheneinkauf-Symbol und kann über die dauerhaft sichtbare Schaltfläche **Installieren** zum Startbildschirm hinzugefügt werden.
 - Beim Auslesen werden Summen-, Steuer- und Zahlungszeilen herausgefiltert. Pfand-, Leergutrückgaben und gesondert ausgewiesene Rabatte werden als Minusbeträge erkannt und vom Einkaufswert abgezogen.
+- Reine Berechnungszeilen wie `-18 x 0,25` werden nicht als Artikel übernommen. Sie geben nur die Anzahl und den Einzelpfandwert an.
 - Daten werden nicht automatisch zwischen Geräten synchronisiert.
 - Angebotspreise werden nicht erfunden oder zwischengespeichert; die App öffnet aktuelle Suchseiten bei kaufDA und marktguru.
