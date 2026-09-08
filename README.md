@@ -19,5 +19,6 @@ Unter **Auswertung → Datensicherung** können alle Einkäufe einschließlich d
 - Die Texterkennung lädt Tesseract.js und für PDF-Dateien PDF.js bei Bedarf aus dem Internet. Manuelle Eingaben und gespeicherte Daten funktionieren auch offline.
 - Über die Schaltfläche mit Mond bzw. Sonne kann zwischen Light Mode und einem neutral schwarzen Dark Mode gewechselt werden.
 - Die App besitzt ein eigenes Wocheneinkauf-Symbol und kann über die dauerhaft sichtbare Schaltfläche **Installieren** zum Startbildschirm hinzugefügt werden.
+- Beim Auslesen werden Summen-, Steuer-, Rabatt- und Zahlungszeilen herausgefiltert, damit nur gekaufte Artikel übernommen werden.
 - Daten werden nicht automatisch zwischen Geräten synchronisiert.
 - Angebotspreise werden nicht erfunden oder zwischengespeichert; die App öffnet aktuelle Suchseiten bei kaufDA und marktguru.

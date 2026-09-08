@@ -57,14 +57,24 @@ async function dbClearAndImport(rows) {
 }
 
 function parseReceiptText(text) {
-  return text.split(/\r?\n/).map((line) => line.replace(/\s+/g, " ").trim()).filter(Boolean).map((line) => {
+  const checkoutWords = /(?:^|\b)(?:zwischen\s*summe|teil\s*summe|summe|gesamt(?:summe|betrag)?|end(?:summe|betrag)|rechnungsbetrag|zahlbetrag|zu\s+zahlen|total)(?:\b|\s|:)/i;
+  const nonItemWords = /(?:^|\b)(?:mwst|mehrwertsteuer|umsatzsteuer|ust|steuer|netto|brutto|steuerpfl(?:ichtig)?|steuerfrei|gegeben|r(?:ü|ue|u)ckgeld|bar(?:geld|zahlung)?|unbar|karte|kartenzahlung|kartenbeleg|girocard|ec[ -]?(?:cash|karte)?|visa|mastercard|maestro|v[ -]?pay|debit|kreditkarte|kontaktlos|apple\s*pay|google\s*pay|zahlung|zahlart|transaktion|autorisierung|terminal|belegnr|bonnr|rechnungsnr|rabatt|coupon|gutschein|ersparnis|gespart|bonuspunkte|treuepunkte)(?:\b|\s|:)/i;
+  const items = [];
+  const lines = text.split(/\r?\n/).map((line) => line.replace(/\s+/g, " ").trim()).filter(Boolean);
+
+  for (const line of lines) {
     const match = line.match(/(.+?)\s+(\d+[,.]\d{2})\s*(?:€|EUR|A|B)?$/i);
-    if (!match) return null;
+    if (!match) continue;
     const quantityMatch = match[1].match(/^(\d+(?:[,.]\d+)?)\s*[xX*]/);
     const name = match[1].replace(/^\d+(?:[,.]\d+)?\s*[xX*]\s*/, "").replace(/\s+[AB]$/i, "").trim();
-    if (name.length < 2 || /summe|gesamt|gegeben|rückgeld|mwst|steuer|kartenzahlung|barzahlung|zu zahlen|subtotal/i.test(name)) return null;
-    return { name, quantity: quantityMatch ? Number(quantityMatch[1].replace(",", ".")) : 1, totalPriceCents: Math.round(Number(match[2].replace(",", ".")) * 100), category: categoryFor(name) };
-  }).filter(Boolean);
+    const looksLikeCheckoutTotal = checkoutWords.test(name);
+    if (looksLikeCheckoutTotal) continue;
+    const looksLikeTaxRate = /^(?:[a-z]\s+)?\d{1,2}[,.]\d+\s*%/i.test(name);
+    if (name.length < 2 || !/[a-zäöüß]/i.test(name) || nonItemWords.test(name) || looksLikeTaxRate) continue;
+    items.push({ name, quantity: quantityMatch ? Number(quantityMatch[1].replace(",", ".")) : 1, totalPriceCents: Math.round(Number(match[2].replace(",", ".")) * 100), category: categoryFor(name) });
+  }
+
+  return items;
 }
 
 function guessStore(text) {
