@@ -14,7 +14,7 @@ const CATEGORY_WORDS = {
   "Süßes & Snacks": ["schokolade","chips","keks","bonbon","gummi"],
 };
 
-const state = { receipts: [], draftItems: [], draftImage: null, draftImageName: "", installPrompt: null };
+const state = { receipts: [], draftItems: [], draftImage: null, draftImageName: "", draftFileType: "", installPrompt: null };
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 const money = (cents) => new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format((Number(cents) || 0) / 100);
@@ -98,7 +98,7 @@ function renderHistory() {
   $("#historySummary").innerHTML = `<div class="summary-cell"><span>Einkäufe</span><strong>${rows.length}</strong></div><div class="summary-cell"><span>Ausgaben</span><strong>${money(total)}</strong></div><div class="summary-cell"><span>Letzter Bon</span><strong>${latest}</strong></div>`;
   const list = $("#historyList");
   if (!rows.length) { list.innerHTML = '<div class="empty"><strong>Noch kein Einkauf gespeichert</strong><span>Fotografiere deinen ersten Kassenbon und starte deine persönliche Auswertung.</span><button class="button primary compact" data-go="capture" type="button">Ersten Bon erfassen</button></div>'; return; }
-  list.innerHTML = rows.map((row) => `<article class="history-card"><div class="history-main"><div class="store-avatar">🧾</div><div class="history-title"><strong>${esc(row.store)}</strong><span>${new Date(`${row.date}T12:00:00`).toLocaleDateString("de-DE")} · ${row.items.length} Artikel</span></div><strong class="history-total">${money(row.totalCents)}</strong></div><div class="history-items">${row.items.slice(0, 5).map((item) => `<span>${esc(item.name)}</span>`).join("")}${row.items.length > 5 ? `<span>+${row.items.length - 5}</span>` : ""}</div><div class="history-actions"><button class="text-button delete-receipt" data-id="${row.id}" type="button">Einkauf löschen</button></div></article>`).join("");
+  list.innerHTML = rows.map((row) => `<article class="history-card"><div class="history-main"><div class="store-avatar">${row.fileType === "application/pdf" ? "PDF" : "🧾"}</div><div class="history-title"><strong>${esc(row.store)}</strong><span>${new Date(`${row.date}T12:00:00`).toLocaleDateString("de-DE")} · ${row.items.length} Artikel${row.fileType === "application/pdf" ? " · PDF-Bon" : ""}</span></div><strong class="history-total">${money(row.totalCents)}</strong></div><div class="history-items">${row.items.slice(0, 5).map((item) => `<span>${esc(item.name)}</span>`).join("")}${row.items.length > 5 ? `<span>+${row.items.length - 5}</span>` : ""}</div><div class="history-actions"><button class="text-button delete-receipt" data-id="${row.id}" type="button">Einkauf löschen</button></div></article>`).join("");
 }
 
 function filteredReceipts() {
@@ -118,7 +118,14 @@ function renderAnalysis() {
   const categories = new Map(); allItems.forEach((item) => categories.set(item.category, (categories.get(item.category) || 0) + item.totalPriceCents)); const sortedCategories = [...categories.entries()].sort((a, b) => b[1] - a[1]);
   $("#categoryChart").innerHTML = sortedCategories.length ? sortedCategories.map(([name, value]) => `<div><div class="bar-label"><span>${esc(name)}</span><strong>${money(value)}</strong></div><div class="bar-track"><div class="bar-fill" style="width:${Math.max(4, Math.round(value / sortedCategories[0][1] * 100))}%"></div></div></div>`).join("") : '<div class="empty"><strong>Noch keine Daten</strong><span>Die Kategorien erscheinen nach dem ersten Einkauf.</span></div>';
   const top = aggregateItems(rows).slice(0, 8); $("#topItems").innerHTML = top.length ? top.map((item, index) => `<div class="top-row"><span class="rank">${index + 1}</span><div><strong>${esc(item.name)}</strong><small>${item.quantity.toLocaleString("de-DE")}× gekauft</small></div><strong>${money(item.spent)}</strong></div>`).join("") : '<div class="empty"><strong>Noch keine Artikel</strong><span>Deine Favoriten werden automatisch ermittelt.</span></div>';
-  $("#backupInfo").textContent = localStorage.getItem("wochenkauf-last-backup") ? `Letzte Sicherung: ${localStorage.getItem("wochenkauf-last-backup")}` : "Noch keine Datensicherung erstellt.";
+  const lastBackup = localStorage.getItem("wochenkauf-last-backup");
+  const lastBackupAt = localStorage.getItem("wochenkauf-last-backup-at");
+  const backupIsOld = lastBackupAt ? Date.now() - new Date(lastBackupAt).getTime() > 7 * 24 * 60 * 60 * 1000 : true;
+  const pending = localStorage.getItem("wochenkauf-backup-pending") === "true" || backupIsOld;
+  const status = $("#backupStatus");
+  $("#backupInfo").textContent = lastBackup ? `Letzte Sicherung: ${lastBackup}` : "Noch keine Datensicherung erstellt.";
+  status.classList.toggle("safe", !pending && Boolean(lastBackup));
+  status.textContent = !state.receipts.length ? "Noch keine Daten zu sichern" : pending || !lastBackup ? "Sicherung empfohlen" : "Alle Änderungen gesichert";
 }
 
 function renderOffers() {
@@ -132,20 +139,43 @@ async function loadAll() {
 }
 
 function resetCapture() {
-  state.draftItems = []; state.draftImage = null; state.draftImageName = ""; $("#receiptFile").value = ""; $("#receiptPreview").src = ""; $("#receiptPreview").classList.add("hidden"); $("#uploadPrompt").classList.remove("hidden"); $("#ocrBtn").disabled = true; $("#storeInput").value = ""; $("#dateInput").value = today(); $("#rawText").value = ""; renderDraftItems();
+  state.draftItems = []; state.draftImage = null; state.draftImageName = ""; state.draftFileType = ""; $("#receiptFile").value = ""; $("#pdfFile").value = ""; $("#receiptPreview").src = ""; $("#receiptPreview").classList.add("hidden"); $("#pdfPreview").classList.add("hidden"); $("#uploadPrompt").classList.remove("hidden"); $("#ocrBtn").disabled = true; $("#storeInput").value = ""; $("#dateInput").value = today(); $("#rawText").value = ""; renderDraftItems();
 }
 
 function selectImage(file) {
-  if (!file) return; if (!file.type.startsWith("image/")) return showToast("Bitte ein Bild des Kassenbons auswählen."); if (file.size > 10 * 1024 * 1024) return showToast("Das Bild darf höchstens 10 MB groß sein.");
-  state.draftImage = file; state.draftImageName = file.name; const preview = $("#receiptPreview"); preview.src = URL.createObjectURL(file); preview.classList.remove("hidden"); $("#uploadPrompt").classList.add("hidden"); $("#ocrBtn").disabled = false;
+  if (!file) return;
+  const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+  if (!file.type.startsWith("image/") && !isPdf) return showToast("Bitte ein Foto oder eine PDF-Datei auswählen.");
+  if (file.size > 15 * 1024 * 1024) return showToast("Die Bondatei darf höchstens 15 MB groß sein.");
+  state.draftImage = file; state.draftImageName = file.name; state.draftFileType = isPdf ? "application/pdf" : file.type;
+  $("#uploadPrompt").classList.add("hidden"); $("#receiptPreview").classList.add("hidden"); $("#pdfPreview").classList.add("hidden");
+  if (isPdf) { $("#pdfName").textContent = file.name; $("#pdfInfo").textContent = "Bereit zum Auslesen"; $("#pdfPreview").classList.remove("hidden"); }
+  else { const preview = $("#receiptPreview"); preview.src = URL.createObjectURL(file); preview.classList.remove("hidden"); }
+  $("#ocrBtn").disabled = false;
 }
 
 async function runOcr() {
   if (!state.draftImage) return; const button = $("#ocrBtn"); button.disabled = true; button.textContent = "Bon wird gelesen …"; $("#ocrProgressWrap").classList.remove("hidden");
   try {
     if (!window.Tesseract) await new Promise((resolve, reject) => { const script = document.createElement("script"); script.src = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"; script.onload = resolve; script.onerror = reject; document.head.appendChild(script); });
-    const result = await window.Tesseract.recognize(state.draftImage, "deu", { logger: (message) => { if (typeof message.progress === "number") { const value = Math.round(message.progress * 100); $("#ocrProgress").style.width = `${value}%`; $("#ocrPercent").textContent = `${value} %`; } } });
-    const text = result.data.text.trim(); $("#rawText").value = text; state.draftItems = parseReceiptText(text); if (!$("#storeInput").value) $("#storeInput").value = guessStore(text); renderDraftItems(); showToast(`${state.draftItems.length} Artikel erkannt – bitte kurz prüfen.`);
+    let text = "";
+    if (state.draftFileType === "application/pdf") {
+      const pdfjs = await import("https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs");
+      pdfjs.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs";
+      const pdf = await pdfjs.getDocument({ data: await state.draftImage.arrayBuffer() }).promise;
+      const pageCount = Math.min(pdf.numPages, 10); $("#pdfInfo").textContent = `${pdf.numPages} Seite${pdf.numPages === 1 ? "" : "n"} · ${pageCount > 1 ? "werden" : "wird"} ausgewertet`;
+      for (let pageNumber = 1; pageNumber <= pageCount; pageNumber++) {
+        const page = await pdf.getPage(pageNumber); const viewport = page.getViewport({ scale: 2 }); const canvas = document.createElement("canvas"); canvas.width = viewport.width; canvas.height = viewport.height;
+        await page.render({ canvasContext: canvas.getContext("2d"), viewport }).promise;
+        const result = await window.Tesseract.recognize(canvas, "deu", { logger: (message) => { if (typeof message.progress === "number") { const value = Math.round(((pageNumber - 1 + message.progress) / pageCount) * 100); $("#ocrProgress").style.width = `${value}%`; $("#ocrPercent").textContent = `${value} %`; } } });
+        text += `${result.data.text.trim()}\n`;
+      }
+      if (pdf.numPages > 10) showToast("Die ersten 10 PDF-Seiten wurden ausgewertet.");
+    } else {
+      const result = await window.Tesseract.recognize(state.draftImage, "deu", { logger: (message) => { if (typeof message.progress === "number") { const value = Math.round(message.progress * 100); $("#ocrProgress").style.width = `${value}%`; $("#ocrPercent").textContent = `${value} %`; } } });
+      text = result.data.text.trim();
+    }
+    $("#rawText").value = text.trim(); state.draftItems = parseReceiptText(text); if (!$("#storeInput").value) $("#storeInput").value = guessStore(text); renderDraftItems(); showToast(`${state.draftItems.length} Artikel erkannt – bitte kurz prüfen.`);
   } catch { showToast("Texterkennung nicht verfügbar. Du kannst Artikel manuell hinzufügen."); }
   finally { button.disabled = false; button.textContent = "Bon erneut auslesen"; $("#ocrProgressWrap").classList.add("hidden"); }
 }
@@ -153,8 +183,8 @@ async function runOcr() {
 async function saveReceipt() {
   const store = $("#storeInput").value.trim(); const date = $("#dateInput").value;
   if (!store) return showToast("Bitte den Händler eintragen."); if (!date) return showToast("Bitte das Einkaufsdatum auswählen."); if (!state.draftItems.length) return showToast("Bitte mindestens einen Artikel hinzufügen.");
-  const row = { store, date, totalCents: state.draftItems.reduce((sum, item) => sum + item.totalPriceCents, 0), items: state.draftItems, image: state.draftImage, imageName: state.draftImageName, rawText: $("#rawText").value, createdAt: new Date().toISOString() };
-  try { row.id = await dbAdd(row); state.receipts.push(row); resetCapture(); showToast("Einkauf gespeichert."); goTo("history"); } catch { showToast("Der Einkauf konnte nicht gespeichert werden."); }
+  const row = { store, date, totalCents: state.draftItems.reduce((sum, item) => sum + item.totalPriceCents, 0), items: state.draftItems, image: state.draftImage, imageName: state.draftImageName, fileType: state.draftFileType, rawText: $("#rawText").value, createdAt: new Date().toISOString() };
+  try { row.id = await dbAdd(row); state.receipts.push(row); localStorage.setItem("wochenkauf-backup-pending", "true"); resetCapture(); showToast("Einkauf gespeichert. Datensicherung empfohlen."); goTo("history"); } catch { showToast("Der Einkauf konnte nicht gespeichert werden."); }
 }
 
 function fileToDataUrl(blob) { return new Promise((resolve, reject) => { if (!blob) return resolve(null); const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = reject; reader.readAsDataURL(blob); }); }
@@ -163,28 +193,36 @@ function dataUrlToBlob(dataUrl) { if (!dataUrl) return null; const parts = dataU
 async function exportBackup() {
   try {
     const receipts = await Promise.all(state.receipts.map(async (row) => ({ ...row, image: await fileToDataUrl(row.image) })));
-    const payload = { app: "Wocheneinkauf", version: 1, exportedAt: new Date().toISOString(), receipts, settings: { location: $("#locationInput").value } };
+    const payload = { app: "Wocheneinkauf", version: 2, exportedAt: new Date().toISOString(), receipts, settings: { location: $("#locationInput").value, theme: document.documentElement.dataset.theme } };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `Wocheneinkauf-Sicherung-${today()}.json`; link.click(); URL.revokeObjectURL(link.href);
-    const stamp = new Date().toLocaleString("de-DE"); localStorage.setItem("wochenkauf-last-backup", stamp); renderAnalysis(); showToast("Datensicherung erstellt.");
+    const stamp = new Date().toLocaleString("de-DE"); localStorage.setItem("wochenkauf-last-backup", stamp); localStorage.setItem("wochenkauf-last-backup-at", new Date().toISOString()); localStorage.setItem("wochenkauf-backup-pending", "false"); renderAnalysis(); showToast("Vollständige Sicherung wurde erstellt.");
   } catch { showToast("Datensicherung konnte nicht erstellt werden."); }
 }
 
 async function importBackup(file) {
   try {
     const payload = JSON.parse(await file.text()); if (payload.app !== "Wocheneinkauf" || !Array.isArray(payload.receipts)) throw new Error("invalid");
-    const rows = payload.receipts.map((row) => ({ ...row, image: dataUrlToBlob(row.image) })); await dbClearAndImport(rows); state.receipts = await dbGetAll(); if (payload.settings?.location) { $("#locationInput").value = payload.settings.location; localStorage.setItem("wochenkauf-location", payload.settings.location); } renderAnalysis(); showToast(`${rows.length} Einkäufe wiederhergestellt.`);
+    const rows = payload.receipts.map((row) => ({ ...row, image: dataUrlToBlob(row.image) })); await dbClearAndImport(rows); state.receipts = await dbGetAll(); if (payload.settings?.location) { $("#locationInput").value = payload.settings.location; localStorage.setItem("wochenkauf-location", payload.settings.location); } if (payload.settings?.theme) applyTheme(payload.settings.theme); localStorage.setItem("wochenkauf-backup-pending", "false"); localStorage.setItem("wochenkauf-last-backup", new Date().toLocaleString("de-DE")); localStorage.setItem("wochenkauf-last-backup-at", new Date().toISOString()); renderAnalysis(); showToast(`${rows.length} Einkäufe einschließlich Bondateien wiederhergestellt.`);
   } catch { showToast("Die Sicherungsdatei ist ungültig oder beschädigt."); }
+}
+
+function applyTheme(theme) {
+  const selected = theme === "dark" ? "dark" : "light";
+  document.documentElement.dataset.theme = selected; localStorage.setItem("wochenkauf-theme", selected);
+  $("#themeBtn").textContent = selected === "dark" ? "☀" : "☾";
+  $("#themeBtn").title = selected === "dark" ? "Light Mode" : "Dark Mode";
+  document.querySelector('meta[name="theme-color"]').content = selected === "dark" ? "#0b1220" : "#155eef";
 }
 
 function bindEvents() {
   $$(".nav-btn").forEach((button) => button.addEventListener("click", () => goTo(button.dataset.view)));
   document.addEventListener("click", async (event) => {
     const go = event.target.closest("[data-go]"); if (go) goTo(go.dataset.go);
-    const remove = event.target.closest(".delete-receipt"); if (remove && confirm("Diesen Einkauf endgültig löschen?")) { await dbDelete(Number(remove.dataset.id)); state.receipts = state.receipts.filter((row) => row.id !== Number(remove.dataset.id)); renderHistory(); showToast("Einkauf gelöscht."); }
+    const remove = event.target.closest(".delete-receipt"); if (remove && confirm("Diesen Einkauf endgültig löschen?")) { await dbDelete(Number(remove.dataset.id)); state.receipts = state.receipts.filter((row) => row.id !== Number(remove.dataset.id)); localStorage.setItem("wochenkauf-backup-pending", "true"); renderHistory(); showToast("Einkauf gelöscht. Neue Sicherung empfohlen."); }
   });
   $("#dropZone").addEventListener("click", () => $("#receiptFile").click()); $("#dropZone").addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") $("#receiptFile").click(); });
   $("#dropZone").addEventListener("dragover", (event) => event.preventDefault()); $("#dropZone").addEventListener("drop", (event) => { event.preventDefault(); selectImage(event.dataTransfer.files[0]); });
-  $("#chooseFileBtn").addEventListener("click", () => $("#receiptFile").click()); $("#receiptFile").addEventListener("change", (event) => selectImage(event.target.files[0])); $("#ocrBtn").addEventListener("click", runOcr);
+  $("#chooseFileBtn").addEventListener("click", () => $("#receiptFile").click()); $("#receiptFile").addEventListener("change", (event) => selectImage(event.target.files[0])); $("#choosePdfBtn").addEventListener("click", () => $("#pdfFile").click()); $("#pdfFile").addEventListener("change", (event) => selectImage(event.target.files[0])); $("#ocrBtn").addEventListener("click", runOcr);
   $("#parseBtn").addEventListener("click", () => { state.draftItems = parseReceiptText($("#rawText").value); renderDraftItems(); showToast(`${state.draftItems.length} Artikel übernommen.`); });
   $("#itemList").addEventListener("input", (event) => { const row = event.target.closest(".item-row"); if (!row) return; const index = Number(row.dataset.index); if (event.target.classList.contains("draft-name")) { state.draftItems[index].name = event.target.value; state.draftItems[index].category = categoryFor(event.target.value); row.querySelector("small").textContent = state.draftItems[index].category; } if (event.target.classList.contains("price-input")) state.draftItems[index].totalPriceCents = Math.round((Number(event.target.value.replace(",", ".")) || 0) * 100); $("#captureTotal").textContent = money(state.draftItems.reduce((sum, item) => sum + item.totalPriceCents, 0)); });
   $("#itemList").addEventListener("click", (event) => { const button = event.target.closest(".delete-draft"); if (!button) return; const index = Number(button.closest(".item-row").dataset.index); state.draftItems.splice(index, 1); renderDraftItems(); });
@@ -193,12 +231,13 @@ function bindEvents() {
   $("#itemForm").addEventListener("submit", (event) => { event.preventDefault(); const name = $("#newItemName").value.trim(); if (!name) return; state.draftItems.push({ name, quantity: Number($("#newItemQty").value) || 1, totalPriceCents: Math.round((Number($("#newItemPrice").value) || 0) * 100), category: categoryFor(name) }); $("#itemDialog").close(); renderDraftItems(); });
   $("#saveBtn").addEventListener("click", saveReceipt); $("#periodSelect").addEventListener("change", renderAnalysis); $("#exportBtn").addEventListener("click", exportBackup); $("#importBtn").addEventListener("click", () => $("#importFile").click()); $("#importFile").addEventListener("change", (event) => event.target.files[0] && importBackup(event.target.files[0]));
   const savedLocation = localStorage.getItem("wochenkauf-location"); if (savedLocation) $("#locationInput").value = savedLocation; $("#locationInput").addEventListener("change", (event) => localStorage.setItem("wochenkauf-location", event.target.value.trim()));
+  $("#themeBtn").addEventListener("click", () => applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark"));
   window.addEventListener("beforeinstallprompt", (event) => { event.preventDefault(); state.installPrompt = event; $("#installBtn").classList.remove("hidden"); });
   $("#installBtn").addEventListener("click", async () => { if (!state.installPrompt) return; state.installPrompt.prompt(); await state.installPrompt.userChoice; state.installPrompt = null; $("#installBtn").classList.add("hidden"); });
 }
 
 async function init() {
-  $("#dateInput").value = today(); bindEvents(); renderDraftItems(); await loadAll();
+  $("#dateInput").value = today(); bindEvents(); applyTheme(document.documentElement.dataset.theme); renderDraftItems(); await loadAll();
   if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js").catch(() => {}));
 }
 

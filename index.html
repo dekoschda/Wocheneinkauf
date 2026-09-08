@@ -9,15 +9,17 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Wocheneinkauf">
   <title>Wocheneinkauf</title>
+  <script>document.documentElement.dataset.theme=localStorage.getItem("wochenkauf-theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");</script>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/icon-192.png">
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./dark.css">
 </head>
 <body>
   <header class="topbar">
     <div class="brand"><div class="brand-icon">🛒</div><div><h1>Wocheneinkauf</h1><p>Bon rein. Überblick raus.</p></div></div>
-    <button id="installBtn" class="button secondary hidden" type="button">App installieren</button>
+    <div class="top-actions"><button id="themeBtn" class="theme-toggle" type="button" aria-label="Darstellung wechseln" title="Dark Mode">☾</button><button id="installBtn" class="button secondary hidden" type="button">App installieren</button></div>
   </header>
 
   <main class="app-shell">
@@ -32,16 +34,19 @@
       <div class="capture-grid">
         <article class="panel">
           <div id="dropZone" class="drop-zone" tabindex="0" role="button" aria-label="Kassenbonfoto auswählen">
-            <div id="uploadPrompt"><div class="round-icon">📷</div><strong>Bon fotografieren oder auswählen</strong><span>JPG, PNG oder WEBP · maximal 10 MB</span></div>
+            <div id="uploadPrompt"><div class="round-icon">📷</div><strong>Foto oder PDF auswählen</strong><span>JPG, PNG, WEBP oder PDF · maximal 15 MB</span></div>
             <img id="receiptPreview" class="receipt-preview hidden" alt="Vorschau des Kassenbons">
+            <div id="pdfPreview" class="pdf-preview hidden"><span>PDF</span><strong id="pdfName"></strong><small id="pdfInfo">Bereit zum Auslesen</small></div>
           </div>
           <input id="receiptFile" class="hidden" type="file" accept="image/*" capture="environment">
+          <input id="pdfFile" class="hidden" type="file" accept="application/pdf,.pdf">
           <div class="button-row">
             <button id="chooseFileBtn" class="button secondary grow" type="button">Foto auswählen</button>
+            <button id="choosePdfBtn" class="button secondary grow" type="button">PDF auswählen</button>
             <button id="ocrBtn" class="button primary grow" type="button" disabled>Bon auslesen</button>
           </div>
           <div id="ocrProgressWrap" class="progress-wrap hidden"><div class="progress-line"><span>Texterkennung</span><strong id="ocrPercent">0 %</strong></div><div class="progress"><i id="ocrProgress"></i></div></div>
-          <p class="privacy-note">Die Texterkennung läuft in deinem Browser. Das Bonfoto wird nur auf deinem Gerät gespeichert.</p>
+          <p class="privacy-note">Die Texterkennung läuft in deinem Browser. Fotos und PDF-Bons werden ausschließlich auf deinem Gerät gespeichert.</p>
         </article>
 
         <article class="panel">
@@ -64,7 +69,7 @@
         <article class="panel"><div class="panel-head"><div><span class="eyebrow">Verteilung</span><h3>Ausgaben nach Kategorie</h3></div></div><div id="categoryChart" class="bar-chart"></div></article>
         <article class="panel"><div class="panel-head"><div><span class="eyebrow">Häufig gekauft</span><h3>Deine Top-Artikel</h3></div></div><div id="topItems" class="top-list"></div></article>
       </div>
-      <article class="panel data-panel"><div><span class="eyebrow">Datensicherung</span><h3>Daten sichern oder übertragen</h3><p>Für einen Gerätewechsel exportierst du eine JSON-Datei und importierst sie auf dem neuen Gerät.</p></div><div class="button-row"><button id="exportBtn" class="button secondary" type="button">JSON exportieren</button><button id="importBtn" class="button secondary" type="button">JSON importieren</button><input id="importFile" class="hidden" type="file" accept="application/json,.json"></div><small id="backupInfo"></small></article>
+      <article class="panel data-panel"><div><span class="eyebrow">Vollständige Datensicherung</span><h3>Einkäufe und Bondateien sichern</h3><p>Der Export enthält alle Einkäufe sowie Foto- und PDF-Bons. Für einen Gerätewechsel importierst du diese Datei auf dem neuen Gerät.</p><div id="backupStatus" class="backup-status">Sicherungsstatus wird geprüft …</div><small id="backupInfo"></small></div><div class="button-row"><button id="exportBtn" class="button primary" type="button">Sicherung erstellen</button><button id="importBtn" class="button secondary" type="button">Sicherung einspielen</button><input id="importFile" class="hidden" type="file" accept="application/json,.json"></div></article>
     </section>
 
     <section id="view-offers" class="view" aria-labelledby="offers-title">

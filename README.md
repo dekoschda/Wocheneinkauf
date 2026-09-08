@@ -1,6 +1,6 @@
 # Wocheneinkauf PWA
 
-Installierbare Web-App zum Erfassen und Auswerten von Kassenbons. Alle Einkäufe und Bonbilder werden ausschließlich im Browser des jeweiligen Geräts gespeichert.
+Installierbare Web-App zum Erfassen und Auswerten von Kassenbons. Foto- und PDF-Bons sowie alle Einkäufe werden ausschließlich im Browser des jeweiligen Geräts gespeichert.
 
 ## Veröffentlichung mit GitHub Pages
 
@@ -12,10 +12,11 @@ Installierbare Web-App zum Erfassen und Auswerten von Kassenbons. Alle Einkäufe
 
 ## Datensicherung
 
-Unter **Auswertung → Datensicherung** können alle Einkäufe und Bonbilder als JSON-Datei exportiert und auf einem anderen Gerät wieder importiert werden.
+Unter **Auswertung → Datensicherung** können alle Einkäufe einschließlich der Foto- und PDF-Bons als JSON-Datei exportiert und auf einem anderen Gerät wieder importiert werden. Nach Änderungen erinnert die App an eine neue Sicherung.
 
 ## Hinweise
 
-- Die Texterkennung lädt Tesseract.js bei Bedarf aus dem Internet. Manuelle Eingaben und gespeicherte Daten funktionieren danach auch offline.
+- Die Texterkennung lädt Tesseract.js und für PDF-Dateien PDF.js bei Bedarf aus dem Internet. Manuelle Eingaben und gespeicherte Daten funktionieren auch offline.
+- Über die Schaltfläche mit Mond bzw. Sonne kann zwischen Light und Dark Mode gewechselt werden.
 - Daten werden nicht automatisch zwischen Geräten synchronisiert.
 - Angebotspreise werden nicht erfunden oder zwischengespeichert; die App öffnet aktuelle Suchseiten bei kaufDA und marktguru.
